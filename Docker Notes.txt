@@ -1,0 +1,604 @@
+#!/bin/bash
+
+#Dockerhub login details
+------------------------
+username : docker1256
+email    : ramireddyvakamalla@gmail.com
+password : dockerhub@123
+
+docker tag local-image:tagname new-repo:tagname
+docker push new-repo:tagname
+My Github Repo : https://github.com/RamiReddyFullstackDeveloper/docker-docs
+-------------------------------------------------------------------
+#Why Docker:
+------------
+Using docker, you can quickly deploy and scale applications into any environment and know your code will run.
+Running Docker on AWS, AWS provides developers and admins a highly reliable, low-cost way to build, ship and run distributed applications.
+
+#What is the benefit of Docker ?
+Fast Development , easy of creating new instances and Faster migration.
+
+#Advantages of Docker
+---------------------
+
+
+#Virtualization  				: sharing the resources
+#Containerazation               : packaging the applications with all necessary configurations and dependencies.
+#Monolithic to Micro services   : 
+
+
+#VM vs Docker
+-------------
+yet to know
+
+
+
+#What is Docker?
+Docker is an open-source virtualized software platform that helps enterprises create, deploy, and run applications in containers. A Docker container is a lightweight package that has its own dependencies, including bins and frameworks. With a Docker container, the developer can deploy the software quickly by separating them from the infrastructure. 
+
+#What is Docker Image
+A Docker image is a read-only template that contains a set of instructions for creating a container that can run on the Docker platform.
+
+#What is the Docker container
+The movement when run docker image, that image will become container.
+
+#Three major components of Docker
+Docker CLI (Server) | Docker Build, pull and run
+Docker Host (Daemon) [containers, Images]
+Docker Registry
+
+
+#Docker Installation Steps
+Step1: go to official website of docker
+       https://docs.docker.com/desktop/install/linux-install/
+Step2: create one SG and EC2 Server 
+Step3: connect EC2 server using putty
+step4: switch to root user
+Step5: Install Docker 
+$ yum install docker -y
+Step6: check docker version 
+$ docker --version
+Step7: for more help 
+$ docker --help
+
+#Start the Docker daemon service from root user, before run the images other wise you will get error. 
+$ systemctl start docker 
+
+#Enable Docker runs continueosly when EC2 stop and start
+$ systemctl enable docker
+[root@docker ~]# systemctl enable docker
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+
+#Pull images from Docker Hub
+Go to official website https://hub.docker.com/ ----> Click Explore 
+       and search for image which you would like Ex : nginx
+	   And click respective image 
+	   and right side of the this image copy the command #under overview
+	   Syntax:  docker pull <image-name>
+$ docker pull nginx  #if we do not specify the version then docker will pull the latest image by specifying nginx:latest
+	   Status: Downloaded newer image for nginx:latest
+	   docker.io/library/nginx:latest
+	   #https://hub.docker.com/_/nginx/tags  , click the tags for checking the number of versions 
+	   under tags you will see tag if you cick version under tag we will see Image hirarchy and image Layers.
+
+
+#List Docker Images
+$ docker images | $ docker image ls
+[root@docker ~]#  docker images
+REPOSITORY   TAG       IMAGE ID       CREATED      SIZE
+nginx        latest    448a08f1d2f9   8 days ago   142MB
+
+# Run Docker Images  
+Syntax:   $ docker run --name <any-name> -d <image-name>  
+Command : $ docker run --name nginx-container -d nginx  # -d is the detach state
+Note: when we run the docker image it will create the container id ex # 356f2eaf0ab7902582c6f9ec2a394f2626a70ea53147a6a1dd6cc687d5e86633
+
+
+#See what is there in side container Approach1	   
+$ dcoker inspect <container-id>
+$ docker inspect 356f2eaf0ab7902582c6f9ec2a394f2626a70ea53147a6a1dd6cc687d5e86633
+
+#List running docker containers
+$ docker ps -a
+[root@docker ~]# docker ps -a
+CONTAINER ID   IMAGE     COMMAND                  CREATED              STATUS              PORTS     NAMES
+356f2eaf0ab7   nginx     "/docker-entrypoint.…"   About a minute ago   Up About a minute   80/tcp    nginx-container
+
+#Stop Docker Container
+$ docker stop <container-id>
+$ docker stop 356f2eaf0ab7
+
+#Start Docker Container
+$ docker start 356f2eaf0ab7
+
+
+#Docker default internal port is 80, but we can not access outside of the world directly, if we want to access outside of the world from container, docker given fecility called port mapping -p <port>:80
+#here left side port we can give any port with that port we can access from the browser
+#we can run same image multiple times by specifying different name and differnt port
+$ docker run --name <any-name> -d -p 9090:80 <image>
+$ docker run --name nginx-expose -d -p 9090:80 nginx
+[root@docker ~]# docker run --name nginx-container1 -d -p 9090:80 nginx
+f5b8c4f92a9013d934061a3032d49ab027df7bce868040d5e4fba0c6687b4819
+[root@docker ~]# docker ps -a
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                                   NAMES
+f5b8c4f92a90   nginx     "/docker-entrypoint.…"   5 seconds ago   Up 3 seconds   0.0.0.0:9090->80/tcp, :::9090->80/tcp   nginx-container1
+356f2eaf0ab7   nginx     "/docker-entrypoint.…"   2 days ago      Up 2 days      80/tcp          
+#from browser http://13.233.172.196:9090/
+
+#If we want to remove running docker container, first we need to stop and remove, if we want to remove without stop then specify the -f for forcefully.
+$docker rm <container-id> | $docker rm -f <container-id>
+[root@docker ~]# docker rm c1600716137e
+Error response from daemon: You cannot remove a running container c1600716137e9a19892cff7e831532927b4187f9f1f208725503a82bbf610f17. Stop the container before attempting removal or force remove
+[root@docker ~]# docker rm -f c1600716137e
+c1600716137e
+
+
+#Docker Session3
+========================================================================================================================================================
+#If we want to see the logs of docker containter Approach2, for container id run $docker ps -a
+$ docker logs -f <container-id>
+#Approach3
+#If we wanna see the information about inside docker container, for this run the following command
+$ docker exec -it <container-id> /bin/bash
+# exec => execute command
+# -it => interactive terminal mode
+# When we run the $ docker exec -it <container-id> /bin/bash command we will go inside the container and if we see the path will change from root@ec2-ip to root@<container-id>
+[root@docker ~]# docker exec -it 356f2eaf0ab7 /bin/bash
+root@356f2eaf0ab7:/# 
+#if we wanna see the what files are there inside the container then run the below command
+$ls -ltr
+
+#Note: If we wanna come out from container use exit command
+root@356f2eaf0ab7:/# $ exec
+[root@docker ~]
+
+
+#Docker is ephermal nature
+-----------------------------
+#Ephermal means it lives short period of time.
+#Docker containers are some time gets deleted accidentally so that data will be lost, this is the biggest problem with docker.
+#To over come this problem docker provides docker volumes
+#Docker Volumes are preferred mechanism for persisting data generated by and used by containers.
+#To know Docker volumes command run $ docker volumes --help
+
+#DOCKER VOLUMES
+================
+https://docs.docker.com/storage/volumes/ #official website
+
+#Now lets create docker volumes, here volumes are not ceated under container it will create where docker is installed so that we won't loss the data unless os get crashed
+#create the docker volume
+$ docker volume create <any-name>
+$ docker volume create vol1
+
+# to list the docker volumes
+$ docker volume ls 
+
+# to inspect the docker volumes
+$ docker volume inspect <vol-name>
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "myvol2",
+        "Source": "/var/lib/docker/volumes/myvol2/_data",  #this is the volume location in machine not in inside the container.
+        "Destination": "/app",
+        "Driver": "local",
+        "Mode": "",
+        "RW": true,
+        "Propagation": ""
+    }
+],
+#Docker volume location or mount system we can not changes it's fixed
+
+#To remove the docker volumes
+$ docker volume rm <vol-name>
+
+#Note: If we wanna create files inside docker container there is no nano and vi commands we have to use touch commmand only
+$ touch file1.txt
+#since we can not edit the file inside the container, if we wannt write some content in the file file1.txt inside the container
+$ echo "this is my container" >> file1.txt
+
+#Start a container with a volume
+--------------------------------
+#If you start a container with a volume that doesn’t yet exist, Docker creates the volume for you. The following example mounts the volume vol1 into /app/ in the container. that means what ever you do work in docker host that will get copied into inside docker container automatically and vice versa.
+#The -v and --mount examples below produce the same result. You can’t run them both unless you remove the devtest container and the myvol2 volume after running the first one.
+$docker run -d  --name <container-name>   -v <vol-name>:/app  nginx:latest  #here -v represent volume
+#Note: If you store any data in /app folder of docker container that same data automatically get copied into docker volumes.
+$docker run -d --name devtest -v vol1:/app nginx:latest 
+$docker run -d   --name devtest   --mount source=myvol2,target=/app   nginx:latest
+
+#Start a container with a volume along with port mapping
+--------------------------------------------------------
+$ docker run -d  --name nginx-container -v vol1:/app -p 9090:80 nginx
+
+#Note: all of this work we done, now eventhough container got deleted the data still remains in ec2 machine bcz we created volumes. if we want to run the same image again by by specifying the volume it will re-use the data without data loss.
+$ docker run -d  --name nginx-container -v vol1:/app -p 9090:80 nginx  #now you can see the data once you go inside into container and cd /app the do ls -ltr bcz we are specifying the /app folder at the time of container starts with -v options.
+
+#Nested container is possible upto 7
+
+
+#Docker Customer Image Creation | Session4
+=================================================================================================================================  
+#Refer my github : https://github.com/RamiReddyFullstackDeveloper/docker-docs/blob/main/dockerfile
+
+#Before going to create custom image first lets udnerstand the below useful commands
+#Dockerfile Instruction	Explanation
+------------------------------------
+#FROM	To specify the base image which can be pulled from a container registry( Docker hub, GCR, Quay, ECR, etc)
+#RUN	Executes commands during the image build process.
+#ENV	Sets environment variables inside the image. It will be available during build time as well as in a running container. If you want to set only build-time variables, use ARG instruction.
+#COPY	Copies local files and directories to the image
+#EXPOSE	Specifies the port to be exposed for the Docker container.
+
+#ADD	It is a more feature-rich version of the COPY instruction. It also allows copying from the URL that is the source and tar file auto-extraction into the image. However, usage of COPY command is recommended over ADD. If you want to download remote files, use curl or get using RUN.
+#WORKDIR	Sets the current working directory. You can reuse this instruction in a Dockerfile to set a different working directory. If you set WORKDIR, instructions like RUN, CMD, ADD, COPY, or ENTRYPOINT gets executed in that directory.
+#VOLUME	It is used to create or mount the volume to the Docker container
+
+#USER	Sets the user name and UID when running the container. You can use this instruction to set a non-root user of the container.
+#LABEL	It is used to specify metadata information of Docker image
+#ARG	Is used to set build-time variables with key and value. the ARG variables will not be available when the container is running. If you want to persist a variable on a running container, use ENV.
+#CMD	It is used to execute a command in a running container. There can be only one CMD, if multiple CMD there then it only applies to the last one. It can be overridden from the Docker CLI.
+#ENTRYPOINT	Specifies the commands that will execute when the Docker container starts. If you don’t specify any ENTRYPOINT, it defaults to /bin/sh -c. You can also override ENTRYPOINT using the --entrypoint flag using CLI. Please refer CMD vs ENTRYPOINT for more information.
+
+# There are two ways two create docker images 
+1> Create and Building image from scratch 
+2> Create custom image from bases image 
+
+#Now we will talk about second option with simple customer image using ubuntu base image
+----------------------------------------------------------------------------------------
+#Step1: first create dockerfile
+$ nano Dockerfile  # name should be dockerfile without extension
+
+#Step2: Create custom image using base image in dockerfile, here am using ubuntu as base image, for this we have to FROM command
+ FROM ubuntu:latest
+
+#Step3: run some of the following commands
+ Maintainer "Vikas"
+ RUN apt-get update
+ RUN apt-get install vim -y
+
+#Step4: execute a command in a running container
+ CMD /bin/echo "Hello from Docker" 
+
+#Now finally every things looks like below
+------------------------------------------
+FROM ubuntu
+Maintainer "Vikas"
+RUN apt-get update
+RUN apt-get install vim -y
+CMD /bin/echo "Hello from Docker"
+
+#Next turn above dockerfile into image
+$ docker build -t <dockerhub-username>/<docker-image-name(any-name)>:<specify-version> <dockerfile-path>
+$ docker build -t rami448/ubuntu-custom-image:v1.1 dockerfile #here v1.1 as version is optional and cockerfile is file which contain set of commands to exe.
+
+#now run docker images commad to check whether image is created or not
+$ docker images | docker image ls
+
+#now you can run the image to turn on container
+$ docker run --name <container-name> -d <image-name or image id >
+$ docker run --name custom-ubuntu-container -d ubuntu-custom-image
+
+#Push Your Image to Docker Hub
+==============================================================================================================================================
+Before pushing the image to Docker Hub, add a description, your full name (FULL NAME in the example here), and Docker Hub username (USERNAME) in the docker commit:
+
+$ docker commit -m "Added LAMP Server" -a "FULL NAME" d09dd0f24b58 USERNAME/<image-name>
+$ docker commit -m "this is my first custom image" -a "ubuntu-customer-image" 9c9fa6856429 docker1256/ubuntu-custom-image
+
+#Once this is fully tagged, log in and push it to Docker Hub:
+$ docker login
+
+# You will be prompted for your Docker Hub credentials. When authentication succeeds, you will see Login succeeded. Now, you can push the image to the Hub with the command:
+$ docker push <docker-hub-username>/docker-custom-image-name:<version>
+
+#Open a browser, log in to your Docker Hub account, and go your main repository. You will see the new image listed. Click on the image and then click on the Tags tab to see the added tag
+
+
+
+
+#Docker file is a blueprint for building image 
+============================================================================================
+ Keywords:
+ FROM:  Talks about the base image 
+ ENV : Optional as environment variables are defined here .
+ RUN : Execute any Linux command .Execution will happen inside the container .
+ COPY: Source can be local, and destination is inside container
+ CMD – Always part of docker file . Execute entry point Linux command .
+       Multiple RUN commands can be there but only one CMD command .
+===========
+FROM ubuntu
+Maintainer "Vikas"
+RUN apt-get update
+RUN apt-get install vim -y
+CMD /bin/echo "Hello from Docker" 
+
+===========
+
+#build dockerfile to turn image 
+docker build -t <docker-hub-id>/ubuntu-morning:v1 .
+docker images
+
+#run docker image to turn container
+docker run -d --name custom-docker <docker-hub-id>/ubuntu-morning:v1
+docker ps -a
+
+#now push our docker image into docker hum 
+docker login
+provide username & password
+docker push <docker-hub-username>/docker-custom-image-name:<version>
+#now verify whether customer image is stored in docker hub or not
+check on hub.docker.com
+
+====================================
+FROM nginx:latest
+
+RUN apt -y update
+RUN apt install -y git
+RUN apt install -y apache2
+
+COPY ./index.html /usr/share/nginx/html/index.html
+
+CMD ["nginx", "-g", "daemon off;"]
+
+=========================================================================
+nano dockerfile
+docker build -t ********/nginx-custom-image:1.0 .
+docker images 
+docker run -d ********/nginx-custom-image:1.0
+docker ps -a
+
+docker login - provide your credentials 
+docker push ***********/nginx-custom-image:1.0
+Check on hub.docker.com
+clean everything from your loacl and create new stuffs
+
+docker pull *********/nginx-custom-image:1.0 
+ and continue as normal
+
+to go inside the container:
+docker exec -it <container-id> /bin/bash
+example : docker exec -it e316f75cad14 /bin/bash
+
+to see the property of container
+example : docker inspect e316f75cad14
+
+to check the logs
+example : docker logs -f <keyword>
+
+to start and stop the container
+example : docker start <container-id>
+example : docker stop <container-id>
+
+=================================================
+FROM nginx:latest
+
+RUN apt -y update
+RUN apt install -y git
+RUN apt install -y apache2
+
+COPY ./index.html /usr/share/nginx/html/index.html
+VOLUME /app
+
+CMD ["nginx", "-g", "daemon off;"] 
+
+#Install nginx server in ubuntu base image
+======================================================
+FROM ubuntu
+Maintainer "RamiReddy"
+RUN apt-get update
+RUN apt-get install vim -y
+RUN apt-get install nginx -y
+CMD /bin/echo "Hello from Docker"
+CMD ["nginx", "-g", "daemon off;"]
+======================================================
+
+
+#Docker Network:
+---------------
+My github repo url : https://github.com/RamiReddyFullstackDeveloper/docker-docs/edit/main/docker-network
+
+Docker networking enables end users to link a docker containers to as many docker networks. Docker container are used to provide complete isolation of Docker Container.
+Note: A user can add containers to more than one docker network.
+
+#Advantages of Docker Networking?
+They share a single operating system and maintain containers in an isolated environment.
+It requires fewer OS instances to run the workload.
+It helps in the fast delivery of software.
+It helps in application portability.
+
+#How Does Docker Networking Work?
+Docker File --> Docker Image ---> Docker Hub ---> Container1
+                  |                          ---> Continaer2
+			    Docker Container
+Docker File builds the Docker Image.
+Docker Image is a template with instructions, which is used to build Docker Containers.
+Docker has its own cloud-based registry called Docker Hub, where users store and distribute container images.
+Docker Container is an executable package of an application and its dependencies together.
+
+#Functionalities of the different components:
+Docker File has the responsibility of building a Docker Image using the build command 
+Docker Image contains all the project’s code.
+Using Docker Image, any user can run the code to create Docker Containers.
+Once Docker Image is built, it’s either uploaded in a registry or a Docker Hub
+Now that you know how Docker networking works, it is important to understand the container network model.
+
+
+#Container Network Model?
+This concept will help you to build and deploy your applications in the Docker tool.
+Let’s discuss the components of the container network model in detail:
+#Network Sandbox
+It is an Isolated sandbox that holds the network sandbox configuration of containers.
+Snadbox is created when user requests to generate an endpoint on the network.
+
+#Endpoints
+It can have several endpoints in a network, as it represents a container’s network configuration such as IP-address, MAC-address, DNS, etc.
+The endpoint establishes the connectivity for container services (within a network) with other services
+It helps in providing connectivity among the endpoints that belong to the same network and isolate them from the rest. So, whenever a network is created, or configuration is changed, the corresponding Network Driver will be notified with an event
+
+#Docker Engine
+It is the base engine installed on your host machine to build and run containers using Docker components and services
+Its task is to manage the network with multiple drivers
+It provides the entry-point into libnetwork to maintain networks, whereas libnetwork supports multiple virtual drivers
+So, those were the key concepts in the container network model. Going ahead, let’s have a look at the network drivers.
+
+#Network Drivers
+Docker supports networking for its containers via network drivers. These drivers have several network drivers.
+#Bridge : 
+it is a private default network created on the host
+Containers linked to this network have an internal IP address through which they communicate with each other easily
+The Docker server (daemon) creates a virtual ethernet bridge docker0 that operates automatically, by delivering packets among various network interfaces
+These are widely used when applications are executed in a standalone container.
+#Host 
+It is a public network
+It utilizes the host’s IP address and TCP port space to display the services running inside the container
+It effectively disables network isolation between the docker host and the docker containers, which means using this network driver a user will be unable to run multiple containers on the same host.
+None
+Overlay
+Macvlan
+
+#Basic Docker Networking Commands
+#List down the Networks associated with Docker
+$ docker network ls
+
+#Create docker network 
+$docker network create -d bridge <network-name>  #no need to specify -d bridge bcz bidge network is by default
+#Bridge networks are isolated networks on a single Engine installation
+
+#If you want to create a network that spans multiple Docker hosts each running an Engine, you must enable Swarm mode, and create an overlay network.
+$docker network create --scope=swarm --attachable -d overlay <network-name> 
+
+#Connect a Running Container to a Network
+$ docker network connect <network-name> container
+ 
+#Connect a container to a network when it starts
+$ docker run -itd --network=<n/w-name> busybox 
+
+#Specify the IP Address that you want to assign to the Container
+$ docker network connect --IP 10.10.36.122 <network-name> container 
+
+#Create a Network alias for a Container
+$ docker network connect --alias db --alias mysql <network-name> container2
+
+#Disconnect a Container from a Network
+$ docker network rm <network_name>
+
+#Remove Multiple Network
+$ docker network rm 3695c422697f network_name
+
+#Remove all Unused Networks
+$ docker network prune
+
+#To verify the container is connected, use the
+$ docker network inspect <container-name>
+
+#to remove a container from the network.
+$ docker network diconnect <container-name>
+
+#to view all associated containers to same network
+$docker network inspect demo-network
+
+#What is the use of CMD commmand in dockerfile ?
+This is the first entrypoint in dockerfile which will be execute inside container 
+#Can we have multiple CMD commands in dockerfile ?
+Yes we can have multiple CMD commands in dockerfile but it will execute at last CMD only that means it will overrites the other CMD commads.
+
+#What is the ENTRYPOINT command in dockerfile?
+ENTRYPOINT is the command will execute at the time of docker contaner start.
+#Can we have multiple ENTRYPOINT commands in dockerfile ?
+Yes we can have multiple ENTRYPOINT commands in dockerfile but it will execute at last ENTRYPOINT only that means it will overrites the other ENTRYPOINT commads.
+
+#What is the difference between Docker Compose and Docker Swarm?
+The difference between Docker Swarm and Docker Compose is that Compose is used for configuring multiple containers in the same host. Docker Swarm is different in that it is a container orchestration tool. This means that Docker Swarm lets you connect containers to multiple hosts similar to Kubernetes.
+
+
+#Docker Compose: 
+=========================================================================================================
+The docker compose is used for configuring multiple contaners in the same host.
+#my github url : https://github.com/RamiReddyFullstackDeveloper/docker-docs.git
+Step1: login into the ec2 machine
+Step2: install the git 
+	$yum install git -yet
+	$git --version
+Step3: clone the docker-compose repo 
+     firt create a directory $mkdir docker in the root user #not mandatory it is just for my convinece i am created
+	$ cd docker
+	$git clone https://github.com/RamiReddyFullstackDeveloper/docker-docs.git
+Step4: change the directory 
+    $ cd docker-docs/Docker-Compose/Demo
+Step5: $ls -ltr
+Step5: create network before run the docker-compose up command other wise it will fail with network does not found.
+$ docker network create example-net  #This example-net network is used in the docker-compose.yml file
+Step6: you will see docker-compose.yml file, this file contain the set of docker commands which will execute when we run the below docker command
+    $ sudo chmod +x /usr/local/bin/docker-compose
+Step7: run the docker-compose up -d to turn the container from images
+	$ dcoker-compose up -d # here -d is the detached mode
+# The above docker-compose.yml file container three containers 
+ 1> Nginx server  # Proxy server
+ 2> Mongo DB
+ 3> node js server 
+ 
+ docker-compose.yml
+ -------------------
+ version: '3'
+
+services:
+    nodejs-app:
+        build:
+          context: ./nodedocker_app #this is the folder pls refer the our github https://github.com/RamiReddyFullstackDeveloper/docker-docs/tree/main/Docker-Compose/Demo/nodedocker_app
+          dockerfile: Dockerfile #this is the dockerfile present in nodedocker_app folder
+        container_name: nodejsserver  #our choice name
+        hostname: nodejsserver        #our choice name
+        ports:  
+            - "8888:8888"
+        networks:
+            - example-net  #network name
+
+        depends_on:
+            - mongo
+    mongo:                    #here mongodb image directly pulling from docker hub
+        container_name: mongo
+        image: mongo
+        volumes:
+            - ./data:/data/db
+        ports:
+            - "27017:27017"
+        networks:
+            - example-net  #network name
+    nginx:
+        build:
+          context: ./nginx  #this is the folder present in github under Demo pls refer above repo
+          dockerfile: Dockerfile #this is the dockerfile present in nginx folder
+        container_name: nginx  #our choice name
+        hostname: nginx        #our choice name
+        ports:
+            - "80:80"
+        depends_on:
+            - nodejs-app  
+        networks:
+            - example-net   #network name
+
+networks:
+  example-net:
+    external: true
+
+
+#here nginx server is the proxy server, we need to enable the port in EC2 Security Group then only we can access the page.
+Any request comes that will go to nginx server and it will forward the traffic to nodejs server.
+Note: here depends_on tag is 
+
+Step8: run the docker-compose down to remove the  containers
+ $ docker-compose down 
+
+Step9: To view all containers that are associated to network
+$docker network inspect <network-name>
+$docker network inspect example-net
+
+
+
+
+
+
+
+
+
+ 
